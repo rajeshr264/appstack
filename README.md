@@ -1,4 +1,4 @@
-#  Ephermeal stack administration
+#  Ephemeral stack administration
 
 Ephemeral stacks in this project makes the following assumptions:
 - Each stack is a combination of infrastructure & apps that are not meant to live long. 
