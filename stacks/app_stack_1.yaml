@@ -1,0 +1,20 @@
+---
+stack :  
+  name: app_stack_1
+  apps:
+  - name   : app1
+    infra  : azure_centos7_Standard_DS4_v2 # will pick up the Cloud region from here
+    config : sample::configure_db   # a task or a plan
+    facts  : [['role','db']]
+    tags   : dev_tags_1
+  - name   : app2
+    infra  : azure_centos7_Standard_DS2_v2
+    config : sample::configure_web  # a task or a plan
+    facts  : [['role','web']]       
+    tags   : dev_tags_2
+  post_install_config:
+    - name  : connect_app1_app2
+      config: sample::configure_app1_app2 # a task or a plan
+    
+# provisioning time: hardwired user name and auto-generated SSH creds for linux machines
+# rest of the creds can be generated during config management task/plan
