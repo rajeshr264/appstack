@@ -32,18 +32,21 @@ type Credentials struct {
 	private_key string 
 }
 
-type VmInstanceType struct {
+type AppInstanceType struct {
+	infra       string 
     cloudtype	CloudType
     region      string 
 	resourceGrp string 
-	tags        map[string]string
+	tags        []string
 	storage     []int
-	cpuMem     	string     
+    creds   	Credentials
+	config      string 
+	facts 		map[string]string
 }
 
 type StackType struct {
-	id       string              // must be unique per live session
-	appStack map[string]VmInstanceType // [AppName:vmInstanceType]
+	id           string              // must be unique per live session
+	appInstances map[string]*AppInstanceType  
 }
 
 func IsValidCloudType(t CloudType) error {

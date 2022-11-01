@@ -56,21 +56,5 @@ func init() {
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-	// if stackFile != "" {
-	// 	// Use config file from the flag.
-	// 	viper.SetConfigFile(stackFile)
-	// } else {
-	// 	// Find home directory.
-	// 	err := errors.New("stack file was not specified using the --stack option")
-	// 	cobra.CheckErr(err)
-	// }
-
-	// viper.AutomaticEnv() // read in environment variables that match
-
-	// // If a config file is found, read it in.
-	// yamlData, err := os.Open(stackFile)
-    // cobra.CheckErr(err)
-	// if err := viper.ReadConfig(yamlData); err == nil {
-	// 	fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
-	// }
+	
 }

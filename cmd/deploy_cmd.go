@@ -20,7 +20,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	//"rajeshr264/ephstack/internal"
+	"rajeshr264/ephstack/internal"
 )
 
 // deployCmd represents the deploy command
@@ -40,9 +40,10 @@ var deployCmd = &cobra.Command{
 		cobra.CheckErr(err)
 	},
 	PostRun: func(cmd *cobra.Command, args []string) {
-		// pass the stack file name to the populate the data structures
-		// err = ephstack.DeployStack(args[0])
-		// cobra.CheckErr(err)
+		// pass the stack file name to the populate the data structures & deploy
+		if err := ephstack.DeployStack(args[0]); err != nil {
+			cobra.CheckErr(err)
+		}
 	},
 }
 
