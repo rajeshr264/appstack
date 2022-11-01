@@ -15,8 +15,20 @@ limitations under the License.
 */
 package main
 
-import "rajeshr264/ephstack/cmd"
+import (
+	"fmt"
+
+	"rajeshr264/ephstack/cmd"
+    "rajeshr264/ephstack/internal"
+)
 
 func main() {
 	cmd.Execute()
+	
+	if len(ephstack.StackInstance.AppInstances) == 0 {
+		fmt.Println("map is empty")
+	}
+	for key, element := range ephstack.StackInstance.AppInstances {
+		fmt.Println("Key:", key, "=>", "Element:", *element)
+	}
 }

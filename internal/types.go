@@ -20,40 +20,43 @@ import ("errors")
 type CloudType string 
 
 const(
-	vsphere CloudType = "vsphere"
-	aws 		  	  = "aws"
-	azure             = "azure"
+	Vsphere CloudType = "vsphere"
+	Aws 		  	  = "aws"
+	Azure             = "azure"
 	//gcp TBD
 )
 
 type Credentials struct {
-	username    string
-	password    string 
-	private_key string 
+	Username    string
+	Password    string 
+	Private_key string 
 }
 
 type AppInstanceType struct {
-	infra       string 
-    cloudtype	CloudType
-    region      string 
-	resourceGrp string 
-	tags        []string
-	storage     []int
-    creds   	Credentials
-	config      string 
-	facts 		map[string]string
+	Infra       string 
+    Cloudtype	CloudType
+    Region      string 
+	ResourceGrp string 
+	Tags        []string
+	Storage     []int
+    Creds   	Credentials
+	Config      string 
+	Facts 		map[string]string
 }
 
 type StackType struct {
-	id           string              // must be unique per live session
-	appInstances map[string]*AppInstanceType  
+	Id           string              // must be unique per live session
+	AppInstances map[string]*AppInstanceType  
 }
 
 func IsValidCloudType(t CloudType) error {
     switch t {
-	case azure:
+	case Azure:
         return nil
     }
     return errors.New("Invalid cloud type specified. Must be azure")
 }
 
+
+// global data structure
+var StackInstance *StackType
