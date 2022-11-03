@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"rajeshr264/ephstack/internal"
@@ -51,7 +52,9 @@ var deployCmd = &cobra.Command{
 	},
 }
 
-func parse(stackFileName string) error {
+func parseStackFile(stackFileName string) error {
+
+	// set the stack file that viper needs to parse 
 	viper.SetConfigFile(stackFileName)
 
 	// If a config file is found, read it in.
@@ -70,19 +73,14 @@ func parse(stackFileName string) error {
 		return errors.New("Malformed YAML file. Unable to parse " + stackFileName)
 	}
 	// populate the StackInstance.appInstances Hash
-	var appInstMap map[string]*(ephstack.AppInstanceType) = make(map[string]*(ephstack.AppInstanceType))
+	var appInstances map[string]*(ephstack.AppInstanceType) = make(map[string]*(ephstack.AppInstanceType))
 	
 	for _, keyVal := range vAppInstancesTree.AllKeys() {
 		var keyValPair []string = strings.Split(keyVal, ".") // viper returns "app1.config"
-		var appInst *ephstack.AppInstanceType = appInstMap[keyValPair[0]]
+		var appInst *ephstack.AppInstanceType = appInstances[keyValPair[0]]
 		if appInst == nil { // uninitalized
 			appInst = &ephstack.AppInstanceType{
 				Infra:       "",
-				Cloudtype:   "",
-				Region:      "",
-				ResourceGrp: "",
-				Tags:        make([]string, 0),
-				Storage:     make([]int, 0),
 				Creds:       ephstack.Credentials{Username: "", Password: "", Private_key: ""},
 				Config:      "",
                 Facts:       make(map[string]string),
@@ -91,34 +89,140 @@ func parse(stackFileName string) error {
 		switch keyValPair[1] {
 		case "config":
 			appInst.Config = vAppInstancesTree.Get(keyVal).(string)
-			appInstMap[keyValPair[0]] = appInst
+			appInstances[keyValPair[0]] = appInst
 		case "infra":
 			appInst.Infra = vAppInstancesTree.Get(keyVal).(string)
-			appInstMap[keyValPair[0]] = appInst
-		case "tags":
-			appInst.Tags = append(appInst.Tags, vAppInstancesTree.Get(keyVal).(string))
-			appInstMap[keyValPair[0]] = appInst
+			appInstances[keyValPair[0]] = appInst
 		case "facts":
-            var mapString map[string]string = make(map[string]string) 
+            var factsMap map[string]string = make(map[string]string) 
             for key,value := range vAppInstancesTree.Get(keyVal).([]interface{}) {
                 var strKey string   = fmt.Sprintf("%v", key)
                 var strValue string = fmt.Sprintf("%v", value)
-                mapString[strKey] = strValue
+                factsMap[strKey] = strValue
             }
-            appInst.Facts = mapString
-            appInstMap[keyValPair[0]] = appInst
+            appInst.Facts = factsMap
+            appInstances[keyValPair[0]] = appInst
 		default:
-            err1 := errors.New("Unexpected App instance value '" + keyValPair[1] + "' found in " + stackFileName)
-			return err1 
+            err := errors.New("unexpected App instance value '" + keyValPair[1] + "' found in " + stackFileName)
+			return err
 		}
 	}
 
-	// parse the cloud config files 
-	
-
-
-	stackInstance.AppInstances = appInstMap
+	// Save the stack info
+	stackInstance.AppInstances = appInstances
 	ephstack.StackInstance = stackInstance
+	return nil 
+}
+
+func parseConfigFiles() error {
+
+	// parse all the config files 
+	var configFileNames []string 
+	err := filepath.Walk("config", func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			err1 := errors.New("unable to open directory ./config")
+			return err1
+		}
+		info, err2 := os.Stat(path)
+		if info.IsDir() {} else {
+			configFileNames = append(configFileNames,path)
+		} 
+		if err2 != nil { 
+			return err2
+		}
+		return nil
+	})
+	if err != nil {
+		err1 := errors.New("unable to open sub directory 'config'")
+		return err1
+	}
+
+	// a map to store all the cloud infra settings 
+	infraHWInstancesMap := &ephstack.InfraHWInstancesMapType{}
+
+	for _,configFileName := range configFileNames {
+		viper.SetConfigFile(configFileName)
+		err := viper.ReadInConfig() // Find and read the config file
+		if err != nil { // Handle errors reading the config file
+			err1 := errors.New("unable to read config file" + configFileName)
+			return err1
+		}
+
+		vConfigTree := viper.Sub("config.infra")
+		if vConfigTree == nil {
+			err = errors.New("config file: " + configFileName + " YAML syntax is not correct")
+			return err
+		}
+		
+		// per cloud map 
+		infraHWMap := &ephstack.InfraHWInstMapType{}
+		(*infraHWInstancesMap)[viper.GetString("config.cloud")] = infraHWMap
+		
+		for _, keyVal := range vConfigTree.AllKeys() {
+			var keyValPair []string = strings.Split(keyVal, ".") // viper returns "<key>.size"
+
+			// each cloud config stack is stored in InfraHwType  objects 
+			var infraHWInst *ephstack.InfraHwType = (*infraHWMap)[keyValPair[0]]
+		    if infraHWInst == nil { // uninitalized
+		        infraHWInst = &ephstack.InfraHwType {
+					Name       : "",
+					Region     : "", 
+					Type       : "",
+					Image      : "",
+					Disks      : make([]string,0),
+		            Tags       : make(map[string]string,0),
+				}
+			}  
+
+			switch keyValPair[1] {
+			case "image":
+			  infraHWInst.Image = vConfigTree.Get(keyVal).(string)
+			  (*infraHWMap)[keyValPair[0]] = infraHWInst
+			case "region":
+				infraHWInst.Region  = vConfigTree.Get(keyVal).(string)
+				(*infraHWMap)[keyValPair[0]] = infraHWInst
+			case "type":
+				infraHWInst.Type  = vConfigTree.Get(keyVal).(string)
+				(*infraHWMap)[keyValPair[0]] = infraHWInst
+			case "disk":
+				for _,v := range vConfigTree.Get(keyVal).([]interface{}) {
+					var value string = fmt.Sprintf("%v", v)
+					infraHWInst.Disks = append(infraHWInst.Disks, value)
+				}
+				(*infraHWMap)[keyValPair[0]] =  infraHWInst
+			case "tags":
+				var tagMap map[string]string = make(map[string]string) 
+           		for key,value := range vConfigTree.Get(keyVal).([]interface{}) {
+            		var strKey string   = fmt.Sprintf("%v", key)
+            		var strValue string = fmt.Sprintf("%v", value)
+            		tagMap[strKey] = strValue
+           		}
+				infraHWInst.Tags             = tagMap
+            	(*infraHWMap)[keyValPair[0]] = infraHWInst
+			default:
+				err := errors.New("unexpected Config instance value " + keyValPair[1] + " found in " + configFileName)
+				return err
+			}	
+		}
+		 
+		ephstack.InfraHWInstances = infraHWInstancesMap
+	}	
+
+	return nil 
+}
+
+func parse(stackFileName string) error {
+
+	err := parseStackFile(stackFileName)
+	if err != nil {
+		return err
+	}
+
+	err = parseConfigFiles()
+	if err != nil {
+		return err 
+	}
+
 	return nil
 }
 

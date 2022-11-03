@@ -2,25 +2,24 @@
 # find all the data you want from there AZ Cli commands:
 # az vm image list --offer CentOS7/WindowsServer --all --output table
 # az vm list-sizes --location eastus --output table
-azure:
-  vm_groups:
-    - name  : azure_centos7_Standard_DS4_v2
-      size  : Standard_DS4_v2
+# the 'infra' tree is built as a 'map', as golang VIPER lib supports only 'map' subtree 
+config : 
+ cloud : azure 
+ infra : # list of infra config stacks 
+    azure_centos7_Standard_DS4_v2:
+      region: westus
+      type  : Standard_DS4_v2
       image : tidalmediainc:centos-7-8-minimal:centos-7-minimal:1.0.2 # reqd: az vm image terms accept --urn "perforce:centos7:7:7.9.2022060800"
-      disk  :  # this is a list. can add more disks to vm 
-        - 128 
-    - name  : azure_centos7_Standard_DS2_v2
-      size  : Standard_DS2_v2
+      disk  : [128 256] # multiple sizes allowed 
+      tags: 
+         - project: myproject
+           group  : tse 
+    azure_centos7_Standard_DS2_v2:
+      region: westus
+      type  : Standard_DS2_v2
       image : tidalmediainc:centos-7-8-minimal:centos-7-minimal:1.0.2 # reqd: az vm image terms accept --urn "perforce:centos7:7:7.9.2022060800"
-      disk  :  # this is a list. can add more disks to vm 
-        - 128 
-  tags: 
-    - name: dev_tags_1
-      project: myproject
-      group  : tse 
-    - name: dev_tags_2
-      project: myproject2
-      group  : tse
-      costcenter: sales 
-
-  
+      disk  : [ 128 ] # multiple sizes allowed 
+      tags: 
+         - project: myproject2
+           group  : tse
+           costcenter: sales 

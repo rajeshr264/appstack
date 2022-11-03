@@ -15,16 +15,6 @@ limitations under the License.
 */
 
 package ephstack
-import ("errors")
-
-type CloudType string 
-
-const(
-	Vsphere CloudType = "vsphere"
-	Aws 		  	  = "aws"
-	Azure             = "azure"
-	//gcp TBD
-)
 
 type Credentials struct {
 	Username    string
@@ -34,11 +24,6 @@ type Credentials struct {
 
 type AppInstanceType struct {
 	Infra       string 
-    Cloudtype	CloudType
-    Region      string 
-	ResourceGrp string 
-	Tags        []string
-	Storage     []int
     Creds   	Credentials
 	Config      string 
 	Facts 		map[string]string
@@ -49,14 +34,19 @@ type StackType struct {
 	AppInstances map[string]*AppInstanceType  
 }
 
-func IsValidCloudType(t CloudType) error {
-    switch t {
-	case Azure:
-        return nil
-    }
-    return errors.New("Invalid cloud type specified. Must be azure")
+type InfraHwType struct {
+	Name        string 
+	Region      string 
+	Type        string 
+	Image       string 
+	Disks       []string 
+	Tags        map[string]string  
 }
+// a map for just storing One cloud infra settings, say just azure
+type InfraHWInstMapType       map[string]*InfraHwType
+// a map to store all the cloud infra settings 
+type InfraHWInstancesMapType  map[string]*InfraHWInstMapType
 
-
-// global data structure
-var StackInstance *StackType
+// global data structures
+var StackInstance      *StackType
+var InfraHWInstances   *InfraHWInstancesMapType

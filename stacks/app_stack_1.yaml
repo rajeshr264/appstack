@@ -14,7 +14,6 @@ stack :
       facts  : 
           - 'role' : 'web'
             'dept' : 'sales'  
-      tags   : dev_tags_2
   post_install_config:
     connect_app1_app2:
       config: sample::configure_app1_app2 

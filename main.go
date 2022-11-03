@@ -31,4 +31,15 @@ func main() {
 	for key, element := range ephstack.StackInstance.AppInstances {
 		fmt.Println("Key:", key, "=>", "Element:", *element)
 	}
+	
+	var ihw ephstack.InfraHWInstancesMapType = *ephstack.InfraHWInstances
+	for cloudName, cloudStacks := range ihw {
+		fmt.Println("Cloud: " + cloudName)
+		for k,v := range (*cloudStacks) {
+			fmt.Print("k = ")
+			fmt.Print(k)
+			fmt.Print(" v = ")
+			fmt.Println(v)
+		}
+	}	
 }
