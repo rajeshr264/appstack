@@ -17,17 +17,29 @@ package main
 
 import (
 	"fmt"
-
+	"os"
+	
 	"rajeshr264/ephstack/cmd"
     "rajeshr264/ephstack/internal"
 )
 
 func main() {
 	cmd.Execute()
-	
+	// debugStackParsePrint()
+
+	// 
+	ephstack.ProvisionInfrastructure()
+
+	// 
+	//ephstack.RunConfigurationMgmt()
+}
+
+func debugStackParsePrint() {
 	if len(ephstack.StackInstance.AppInstances) == 0 {
-		fmt.Println("map is empty")
+		fmt.Println("App stack is empty")
+		os.Exit(1)
 	}
+	
 	for key, element := range ephstack.StackInstance.AppInstances {
 		fmt.Println("Key:", key, "=>", "Element:", *element)
 	}
@@ -36,7 +48,7 @@ func main() {
 	for cloudName, cloudStacks := range ihw {
 		fmt.Println("Cloud: " + cloudName)
 		for k,v := range (*cloudStacks) {
-			fmt.Print("k = ")
+			fmt.Print("cloud config = ")
 			fmt.Print(k)
 			fmt.Print(" v = ")
 			fmt.Println(v)
