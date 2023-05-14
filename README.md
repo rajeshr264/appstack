@@ -1,3 +1,3 @@
 #  App stack administration
 
-*Appstack* toolset provisions & configures application ephemeral stacks on public & private clouds.  
+*Appstack* toolset provisions & configures application stacks on public & private clouds.  
